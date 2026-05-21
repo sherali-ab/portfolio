@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sher Abdaliev — Developer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Unbounded:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --bg2: #0d1117;
+    --bg3: #111820;
+    --accent: #00ff88;
+    --accent2: #00d4ff;
+    --accent3: #ff6b35;
+    --text: #e2e8f0;
+    --muted: #4a5568;
+    --border: #1a2332;
+    --card: #0d1520;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s;
+    box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent);
+  }
+  .cursor-ring {
+    width: 30px; height: 30px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: all 0.15s ease;
+    opacity: 0.5;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Scanline */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 2; }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,12,16,0.92);
+    backdrop-filter: blur(12px);
+  }
+  nav .inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .logo span { color: var(--muted); }
+  nav ul { list-style: none; display: flex; gap: 2rem; }
+  nav ul a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  nav ul a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-top: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .terminal-window {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 680px;
+    animation: fadeUp 0.8s ease forwards;
+    opacity: 0;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .term-header {
+    background: var(--bg3);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .term-title { font-size: 11px; color: var(--muted); margin-left: 8px; }
+
+  .term-body { padding: 2rem; }
+  .term-line { display: flex; align-items: flex-start; margin-bottom: 0.6rem; font-size: 13px; }
+  .prompt { color: var(--accent); margin-right: 8px; flex-shrink: 0; }
+  .cmd { color: var(--text); }
+  .out { color: var(--muted); font-size: 12px; padding-left: 1.2rem; margin-bottom: 0.4rem; }
+  .highlight { color: var(--accent); }
+  .highlight2 { color: var(--accent2); }
+  .highlight3 { color: var(--accent3); }
+
+  .hero-right {
+    flex: 1;
+    padding-left: 4rem;
+    animation: fadeUp 0.8s 0.2s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-tag {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 30px; height: 1px;
+    background: var(--accent);
+    display: block;
+  }
+
+  .hero-name {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+  .hero-name .line2 { color: var(--accent); }
+
+  .hero-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 380px;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #080c10;
+    font-weight: 700;
+  }
+  .btn-primary:hover {
+    background: #00cc6e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,255,136,0.25);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .hero-layout { display: flex; align-items: center; gap: 3rem; }
+
+  /* Socials */
+  .socials {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .social-icon {
+    width: 40px; height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+  .social-icon:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,136,0.05);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(0,255,136,0.15);
+  }
+  .social-icon svg { width: 18px; height: 18px; fill: currentColor; }
+
+  /* Section */
+  section { padding: 6rem 0; position: relative; z-index: 2; }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    max-width: 60px;
+    height: 1px;
+    background: var(--accent);
+    display: block;
+  }
+
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700;
+    margin-bottom: 3rem;
+    letter-spacing: -0.02em;
+  }
+
+  /* WHY ME */
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .why-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .why-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .why-card:hover { border-color: rgba(0,255,136,0.2); transform: translateY(-4px); }
+  .why-card:hover::before { opacity: 1; }
+
+  .why-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: rgba(0,255,136,0.1);
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+  .why-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.02em;
+  }
+  .why-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* SKILLS */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .skill-group {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .skill-group:hover { border-color: rgba(0,212,255,0.3); }
+  .skill-group-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+  }
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* PLATFORMS */
+  .platforms {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+  }
+  .platform-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .platform-card:hover {
+    transform: translateY(-4px);
+  }
+  .platform-card.tg:hover { border-color: rgba(0,136,204,0.4); box-shadow: 0 8px 30px rgba(0,136,204,0.1); }
+  .platform-card.vk:hover { border-color: rgba(71,148,255,0.4); box-shadow: 0 8px 30px rgba(71,148,255,0.1); }
+  .platform-card.mx:hover { border-color: rgba(255,107,53,0.4); box-shadow: 0 8px 30px rgba(255,107,53,0.1); }
+
+  .platform-icon { width: 56px; height: 56px; margin: 0 auto 1rem; }
+  .platform-icon svg { width: 56px; height: 56px; }
+  .platform-name {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .platform-desc { font-size: 11px; color: var(--muted); line-height: 1.7; }
+
+  /* CONTACT */
+  .contact-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .contact-left h3 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  .contact-left p { font-size: 13px; color: var(--muted); max-width: 400px; line-height: 1.8; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 0;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Cursor blink */
+  .blink {
+    animation: blink 1s step-end infinite;
+    color: var(--accent);
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  /* Type animation */
+  .typed { overflow: hidden; white-space: nowrap; border-right: 2px solid var(--accent); width: 0; }
+  .typed.done { border-right: none; width: auto; }
+
+  /* Scroll fade-in */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 768px) {
+    .hero-layout { flex-direction: column; }
+    .hero-right { padding-left: 0; padding-top: 2rem; }
+    .platforms { grid-template-columns: 1fr; }
+    .contact-block { flex-direction: column; }
+    nav ul { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="inner">
+    <div class="logo">SHER<span>.</span>dev</div>
+    <ul>
+      <li><a href="#about">ABOUT</a></li>
+      <li><a href="#why">WHY ME</a></li>
+      <li><a href="#skills">SKILLS</a></li>
+      <li><a href="#bots">BOTS</a></li>
+      <li><a href="#contact">CONTACT</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="about">
+  <div class="container">
+    <div class="hero-layout">
+      <div class="terminal-window">
+        <div class="term-header">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <span class="term-title">~/portfolio — zsh</span>
+        </div>
+        <div class="term-body">
+          <div class="term-line">
+            <span class="prompt">❯</span>
+            <span class="cmd">whoami</span>
+          </div>
+          <div class="out"><span class="highlight">Sher Abdaliev</span> — Full-Stack Developer &amp; Bot Engineer</div>
+
+          <div class="term-line" style="margin-top:1rem">
+            <span class="prompt">❯</span>
+            <span class="cmd">cat status.json</span>
+          </div>
+          <div class="out" style="color:#4a5568">{</div>
+          <div class="out" style="padding-left:2.5rem">"year": <span class="highlight">"4th year student"</span>,</div>
+          <div class="out" style="padding-left:2.5rem">"focus": <span class="highlight2">["apps", "bots", "web"]</span>,</div>
+          <div class="out" style="padding-left:2.5rem">"platforms": <span class="highlight3">["Telegram", "VK", "MAX"]</span>,</div>
+          <div class="out" style="padding-left:2.5rem">"available": <span class="highlight">true</span></div>
+          <div class="out" style="color:#4a5568">}</div>
+
+          <div class="term-line" style="margin-top:1rem">
+            <span class="prompt">❯</span>
+            <span class="cmd">git log --oneline -3</span>
+          </div>
+          <div class="out"><span class="highlight">a3f1c2e</span> add telegram bot with inline keyboards</div>
+          <div class="out"><span class="highlight">b7d9041</span> deploy vk mini app to production</div>
+          <div class="out"><span class="highlight">c2e8519</span> refactor max bot core module</div>
+
+          <div class="term-line" style="margin-top:1rem">
+            <span class="prompt">❯</span>
+            <span class="cmd blink">█</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-tag">available for hire</div>
+        <h1 class="hero-name">
+          Sher<br>
+          <span class="line2">Abdaliev</span>
+        </h1>
+        <p class="hero-sub">
+          Разрабатываю боты, приложения и сайты.<br>
+          Telegram · VK · MAX — от идеи до деплоя.
+        </p>
+
+        <div class="hero-cta">
+          <a href="#contact" class="btn btn-primary">→ связаться</a>
+          <a href="https://github.com/sherali-ab" target="_blank" class="btn btn-ghost">github</a>
+        </div>
+
+        <div class="socials">
+          <!-- GitHub -->
+          <a href="https://github.com/sherali-ab" target="_blank" class="social-icon" title="GitHub">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/>
+            </svg>
+          </a>
+          <!-- Telegram -->
+          <a href="https://t.me/aloeveraxa" target="_blank" class="social-icon" title="Telegram">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+            </svg>
+          </a>
+          <!-- VK -->
+          <a href="https://vk.com/id744993673" target="_blank" class="social-icon" title="VKontakte">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.391 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.864-.525-2.05-1.727-1.033-1-1.49-1.135-1.744-1.135-.356 0-.458.102-.458.593v1.575c0 .424-.135.678-1.253.678-1.846 0-3.896-1.118-5.335-3.202C4.624 10.857 4.03 8.57 4.03 8.096c0-.254.102-.491.593-.491h1.744c.44 0 .61.203.78.677.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.721c-.068-1.186-.695-1.287-.695-1.71 0-.203.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.27-1.422 2.166-3.607 2.166-3.607.119-.254.322-.491.762-.491h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.05.17.49-.085.745-.576.745z"/>
+            </svg>
+          </a>
+          <!-- MAX -->
+          <a href="https://max.ru/u/f9LHodD0cOJnsq49ljIjy5j1dSh9MGfQ5O-eqGoVOy3p2O8x2T4zu1PBWQw" target="_blank" class="social-icon" title="MAX" style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:900;color:var(--muted);letter-spacing:0.05em">
+            MAX
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY ME -->
+<section id="why">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">/ почему именно я</div>
+      <h2 class="section-title">Причины выбрать меня</h2>
+    </div>
+
+    <div class="why-grid">
+      <div class="why-card reveal">
+        <div class="why-num">01</div>
+        <div class="why-title">Покрываю все платформы</div>
+        <div class="why-desc">Telegram, VK, MAX — разрабатываю под все три. Не нужно искать разных исполнителей для каждой платформы. Один разработчик, единый подход, консистентный результат.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-num">02</div>
+        <div class="why-title">Full-stack с нуля до деплоя</div>
+        <div class="why-desc">От архитектуры базы данных до UI в браузере — закрываю весь стек. Ты получаешь готовый продукт, а не кучу разрозненных частей.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-num">03</div>
+        <div class="why-title">Код — не шаблоны</div>
+        <div class="why-desc">Пишу чистый, масштабируемый код под конкретную задачу. Никаких перегруженных конструкторов или no-code заплаток — только нормальная разработка.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-num">04</div>
+        <div class="why-title">Быстро вникаю и делаю</div>
+        <div class="why-desc">4 курс — это годы реальных проектов, а не только теория. Не трачу время заказчика на "вхождение в задачу" неделями.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-num">05</div>
+        <div class="why-title">Честная коммуникация</div>
+        <div class="why-desc">Говорю прямо, если задача нереалистична. Держу в курсе прогресса. Без пропаданий и расплывчатых сроков.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-num">06</div>
+        <div class="why-title">Результат, который работает</div>
+        <div class="why-desc">Сдаю не "поделку", а рабочий продукт. Тестирую перед сдачей, документирую, помогаю с поддержкой после запуска.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOTS -->
+<section id="bots">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">/ специализация</div>
+      <h2 class="section-title">Боты и мини-приложения</h2>
+    </div>
+
+    <div class="platforms reveal">
+      <div class="platform-card tg">
+        <div class="platform-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="12" fill="#0088cc" opacity="0.15"/>
+            <circle cx="12" cy="12" r="12" fill="none" stroke="#0088cc" stroke-width="1" opacity="0.4"/>
+            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" fill="#0088cc"/>
+          </svg>
+        </div>
+        <div class="platform-name" style="color:#0088cc">Telegram</div>
+        <div class="platform-desc">Боты с inline-кнопками, FSM, вебхуки, Mini Apps, интеграции с API, платёжки</div>
+      </div>
+
+      <div class="platform-card vk">
+        <div class="platform-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="24" height="24" rx="12" fill="#4794FF" opacity="0.15"/>
+            <rect width="24" height="24" rx="12" fill="none" stroke="#4794FF" stroke-width="1" opacity="0.4"/>
+            <path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.391 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.864-.525-2.05-1.727-1.033-1-1.49-1.135-1.744-1.135-.356 0-.458.102-.458.593v1.575c0 .424-.135.678-1.253.678-1.846 0-3.896-1.118-5.335-3.202C4.624 10.857 4.03 8.57 4.03 8.096c0-.254.102-.491.593-.491h1.744c.44 0 .61.203.78.677.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.721c-.068-1.186-.695-1.287-.695-1.71 0-.203.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.27-1.422 2.166-3.607 2.166-3.607.119-.254.322-.491.762-.491h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.05.17.49-.085.745-.576.745z" fill="#4794FF"/>
+          </svg>
+        </div>
+        <div class="platform-name" style="color:#4794FF">VKontakte</div>
+        <div class="platform-desc">VK Боты, VK Mini Apps, работа с VK API, сообщества, рассылки, интеграции</div>
+      </div>
+
+      <div class="platform-card mx">
+        <div class="platform-icon" style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;margin:0 auto 1rem;border:1px solid rgba(255,107,53,0.3);border-radius:12px;background:rgba(255,107,53,0.08)">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <text x="4" y="24" font-family="'Unbounded',sans-serif" font-weight="900" font-size="18" fill="#ff6b35">MX</text>
+          </svg>
+        </div>
+        <div class="platform-name" style="color:#ff6b35">MAX</div>
+        <div class="platform-desc">Боты для платформы MAX — новая экосистема с большими возможностями для раннего входа</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">/ стек</div>
+      <h2 class="section-title">Технологии</h2>
+    </div>
+
+    <div class="skills-grid reveal">
+      <div class="skill-group">
+        <div class="skill-group-title">Backend</div>
+        <div class="skill-tags">
+          <span class="tag">Python</span>
+          <span class="tag">Node.js</span>
+          <span class="tag">FastAPI</span>
+          <span class="tag">aiogram</span>
+          <span class="tag">REST API</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Frontend</div>
+        <div class="skill-tags">
+          <span class="tag">HTML/CSS</span>
+          <span class="tag">JavaScript</span>
+          <span class="tag">React</span>
+          <span class="tag">Vue</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Базы данных</div>
+        <div class="skill-tags">
+          <span class="tag">PostgreSQL</span>
+          <span class="tag">SQLite</span>
+          <span class="tag">Redis</span>
+          <span class="tag">MongoDB</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">DevOps / Infra</div>
+        <div class="skill-tags">
+          <span class="tag">Docker</span>
+          <span class="tag">Linux</span>
+          <span class="tag">Nginx</span>
+          <span class="tag">Git</span>
+          <span class="tag">VPS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="contact-block reveal">
+      <div class="contact-left">
+        <h3>Есть задача?<br><span style="color:var(--accent)">Давай обсудим.</span></h3>
+        <p>Напишу, уточню детали, оценю сроки и стоимость. Без воды и затяжных переговоров — просто дело.</p>
+        <div class="socials" style="margin-top:1.5rem">
+          <a href="https://github.com/" target="_blank" class="social-icon" title="GitHub">
+            <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+          </a>
+          <a href="https://t.me/" target="_blank" class="social-icon" title="Telegram">
+            <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          </a>
+          <a href="https://vk.com/" target="_blank" class="social-icon" title="VKontakte">
+            <svg viewBox="0 0 24 24"><path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.391 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.864-.525-2.05-1.727-1.033-1-1.49-1.135-1.744-1.135-.356 0-.458.102-.458.593v1.575c0 .424-.135.678-1.253.678-1.846 0-3.896-1.118-5.335-3.202C4.624 10.857 4.03 8.57 4.03 8.096c0-.254.102-.491.593-.491h1.744c.44 0 .61.203.78.677.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.721c-.068-1.186-.695-1.287-.695-1.71 0-.203.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.27-1.422 2.166-3.607 2.166-3.607.119-.254.322-.491.762-.491h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.05.17.49-.085.745-.576.745z"/></svg>
+          </a>
+          <a href="https://max.ru/" target="_blank" class="social-icon" title="MAX" style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:900;letter-spacing:0.05em">
+            MAX
+          </a>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;align-items:flex-start">
+        <a href="https://t.me/" target="_blank" class="btn btn-primary" style="font-size:14px;padding:16px 32px;white-space:nowrap;width:100%;text-align:center">→ написать в Telegram</a>
+        <a href="https://max.ru/" target="_blank" class="btn btn-ghost" style="font-size:13px;padding:12px 32px;white-space:nowrap;width:100%;text-align:center;border-color:rgba(255,107,53,0.4);color:#ff6b35">→ написать в MAX</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>© 2025 Sher Abdaliev — <span style="color:var(--accent)">sher.dev</span> — все права защищены</p>
+  </div>
+</footer>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 4 + 'px';
+    cursor.style.top = my - 4 + 'px';
+  });
+
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx - 15 + 'px';
+    ring.style.top = ry - 15 + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'scale(2)';
+      ring.style.transform = 'scale(1.5)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'scale(1)';
+      ring.style.transform = 'scale(1)';
+    });
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
